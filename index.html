@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>GST Invoice Tool — Freelancers ke liye</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="logo">₹ GST Invoice</h1>
+      <p class="tagline">Freelancers ke liye simple GST invoice tool</p>
+
+      <div id="otp-screen">
+        <label for="email">Apna email daalein</label>
+        <input type="email" id="email" placeholder="you@example.com" />
+        <button id="send-otp-btn">OTP Bhejein</button>
+        <p class="hint">Hum aapke email par 6 ank ka code bhejenge</p>
+      </div>
+
+      <div id="verify-screen" style="display:none;">
+        <label for="otp">Email par aaya 6 ank ka code daalein</label>
+        <input type="text" id="otp" maxlength="6" placeholder="123456" />
+        <button id="verify-btn">Login karein</button>
+        <button id="back-btn" class="link-btn">← Email badlein</button>
+      </div>
+
+      <p id="message" class="message"></p>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabase.js"></script>
+  <script src="js/auth.js"></script>
+</body>
+</html>
