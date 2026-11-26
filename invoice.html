@@ -29,14 +29,12 @@
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
     th { background-color: #f7fafc; }
 
-    /* ==== जादुई कोड: सिर्फ प्रिंट करते समय यह लागू होगा ==== */
+    /* ==== जादुई कोड: प्रिंट में सिर्फ इनवॉइस दिखेगा और खाली पेज नहीं आएगा ==== */
     @media print {
-      body * {
-        visibility: hidden; /* स्क्रीन पर सब कुछ छुपा दो */
-      }
-      #invoice-box, #invoice-box * {
-        visibility: visible; /* सिर्फ इनवॉइस दिखाओ */
-      }
+      @page { margin: 10mm; }
+      body { margin: 0; padding: 0; background: #fff; }
+      body * { visibility: hidden; }
+      #invoice-box, #invoice-box * { visibility: visible; }
       #invoice-box {
         position: absolute;
         left: 0;
@@ -46,10 +44,9 @@
         margin: 0;
         border: none;
         box-shadow: none;
+        page-break-after: avoid;
       }
-      .no-print {
-        display: none !important;
-      }
+      .no-print { display: none !important; }
     }
   </style>
 </head>
@@ -73,7 +70,6 @@
         <label>Amount (₹)</label>
         <input type="number" id="item-amount" placeholder="5000" />
       </div>
-      
       <button class="btn-primary" onclick="calculateGST()">Generate Invoice</button>
     </div>
   </div>
@@ -119,7 +115,6 @@
     </div>
 
     <div id="download-btn-container" class="no-print" style="display: none; margin-bottom: 40px;">
-      <!-- यह बटन अब फोन के प्रिंटर को खोलेगा जहाँ से 'Save as PDF' चुनना है -->
       <button class="btn-download" onclick="window.print()">📥 Save as PDF</button>
     </div>
   </div>
