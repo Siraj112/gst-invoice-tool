@@ -16,30 +16,25 @@
     .form-group label { display: block; font-size: 14px; color: #4a5568; margin-bottom: 4px; }
     .form-group input { width: 100%; padding: 10px; border: 1px solid #e2e8f0; border-radius: 8px; box-sizing: border-box; }
     .btn-primary { width: 100%; padding: 12px; background: #667eea; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; margin-top: 10px; cursor: pointer; }
-    .btn-download { width: 100%; padding: 14px; background: #38a169; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; margin-top: 15px; cursor: pointer; display: flex; justify-content: center; align-items: center; gap: 10px; }
+    .btn-download { width: 100%; padding: 14px; background: #38a169; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; margin-top: 15px; cursor: pointer; }
     .back-link { color: #667eea; text-decoration: none; font-size: 14px; }
     
-    /* इनवॉइस का नया डिज़ाइन (टेबल के बिना) */
+    /* इनवॉइस का सिंपल और सॉलिड डिज़ाइन */
     .invoice-box { background: #fff; padding: 30px; border-radius: 12px; margin-top: 20px; display: none; border: 1px solid #e2e8f0; color: #000; }
     .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 15px; margin-bottom: 20px; }
-    .invoice-details { margin-bottom: 20px; }
     .invoice-details p { margin: 5px 0; font-size: 14px; color: #4a5568; }
-    
-    .item-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #e2e8f0; font-weight: bold; background: #f7fafc; }
-    .item-data { display: flex; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid #e2e8f0; }
-    
     .total-section { text-align: right; margin-top: 20px; font-size: 15px; }
     .total-section p { margin: 5px 0; }
     .total-section h3 { margin-top: 10px; color: #2d3748; font-size: 18px; border-top: 2px solid #2d3748; padding-top: 10px; }
   </style>
 </head>
 <body>
-  <nav class="navbar no-print">
+  <nav class="navbar">
     <h2>₹ Naya Invoice</h2>
     <a href="dashboard.html" class="back-link">← Dashboard</a>
   </nav>
 
-  <div class="container no-print">
+  <div class="container">
     <div class="card">
       <div class="form-group">
         <label>Client ka Naam</label>
@@ -59,6 +54,7 @@
   </div>
 
   <div class="container">
+    <!-- इनवॉइस बॉक्स (PDF के लिए) -->
     <div class="invoice-box" id="invoice-box">
       <div class="invoice-header">
         <div>
@@ -76,15 +72,21 @@
         <h3 style="margin: 5px 0; color: #2d3748;" id="res-client"></h3>
       </div>
 
-      <!-- टेबल की जगह अब div का इस्तेमाल किया है -->
-      <div class="item-row">
-        <div style="width: 70%;">Description</div>
-        <div style="width: 30%; text-align: right;">Amount</div>
-      </div>
-      <div class="item-data">
-        <div style="width: 70%;" id="res-item"></div>
-        <div style="width: 30%; text-align: right;">₹<span id="res-amount"></span></div>
-      </div>
+      <!-- सिंपल HTML टेबल (PDF लाइब्रेरी इसे तुरंत पकड़ लेती है) -->
+      <table style="width: 100%; border-collapse: collapse; margin-top: 20px;">
+        <thead>
+          <tr style="background-color: #f7fafc;">
+            <th style="text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; width: 70%;">Description</th>
+            <th style="text-align: right; padding: 12px; border-bottom: 1px solid #e2e8f0; width: 30%;">Amount</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: left;" id="res-item"></td>
+            <td style="padding: 12px; border-bottom: 1px solid #e2e8f0; text-align: right;">₹<span id="res-amount"></span></td>
+          </tr>
+        </tbody>
+      </table>
 
       <div class="total-section">
         <p>CGST (9%): ₹<span id="res-cgst"></span></p>
@@ -93,8 +95,9 @@
       </div>
     </div>
 
+    <!-- डाउनलोड बटन -->
     <div id="download-btn-container" style="display: none; margin-bottom: 40px;">
-      <button class="btn-download" onclick="downloadPDF()">📥 Download PDF</button>
+      <button class="btn-download" id="pdf-btn" onclick="downloadPDF()">📥 Download PDF</button>
     </div>
   </div>
 
@@ -128,20 +131,25 @@
     }
 
     function downloadPDF() {
+      const btn = document.getElementById('pdf-btn');
+      btn.innerText = "Downloading... Please wait ⏳"; // बटन पर लोडिंग दिखाएँ
+      
       const element = document.getElementById('invoice-box');
       const clientName = document.getElementById('res-client').innerText;
       
-      // PDF बनाने की सेटिंग (थोड़ा और बेहतर किया गया है)
+      // यहाँ सेटिंग्स को और मजबूत किया गया है
       const opt = {
-        margin:       [0.5, 0.5, 0.5, 0.5], // ऊपर, दाएं, नीचे, बाएं मार्जिन
+        margin:       [0.5, 0.5, 0.5, 0.5],
         filename:     `Invoice_${clientName}.pdf`,
         image:        { type: 'jpeg', quality: 1 },
-        html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+        html2canvas:  { scale: 2, useCORS: true, windowWidth: 800 }, // windowWidth जोड़ा गया है
         jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
 
-      // PDF जनरेट और डाउनलोड करें
-      html2pdf().set(opt).from(element).save();
+      // PDF जनरेट करें
+      html2pdf().set(opt).from(element).save().then(() => {
+        btn.innerText = "📥 Download PDF"; // काम होने के बाद बटन वापस सामान्य करें
+      });
     }
   </script>
 </body>
