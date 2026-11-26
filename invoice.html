@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Naya Invoice — GST Invoice Tool</title>
   <link rel="stylesheet" href="css/style.css" />
+  
+  <!-- असली प्रोफेशनल लाइब्रेरीज -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
   <style>
     body { background: #f7fafc; display: block; padding: 0; margin: 0; }
     .navbar { background: #fff; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
@@ -28,36 +33,15 @@
     table { width: 100%; border-collapse: collapse; margin-top: 20px; }
     th, td { text-align: left; padding: 12px; border-bottom: 1px solid #e2e8f0; }
     th { background-color: #f7fafc; }
-
-    /* ==== जादुई कोड: प्रिंट में सिर्फ इनवॉइस दिखेगा और खाली पेज नहीं आएगा ==== */
-    @media print {
-      @page { margin: 10mm; }
-      body { margin: 0; padding: 0; background: #fff; }
-      body * { visibility: hidden; }
-      #invoice-box, #invoice-box * { visibility: visible; }
-      #invoice-box {
-        position: absolute;
-        left: 0;
-        top: 0;
-        width: 100%;
-        padding: 0;
-        margin: 0;
-        border: none;
-        box-shadow: none;
-        page-break-after: avoid;
-        page-break-inside: avoid;
-      }
-      .no-print { display: none !important; }
-    }
   </style>
 </head>
 <body>
-  <nav class="navbar no-print">
+  <nav class="navbar">
     <h2>₹ Naya Invoice</h2>
     <a href="dashboard.html" class="back-link">← Dashboard</a>
   </nav>
 
-  <div class="container no-print">
+  <div class="container">
     <div class="card">
       <div class="form-group">
         <label>Client ka Naam</label>
@@ -115,8 +99,8 @@
       </div>
     </div>
 
-    <div id="download-btn-container" class="no-print" style="display: none; margin-bottom: 40px;">
-      <button class="btn-download" onclick="window.print()">📥 Save as PDF</button>
+    <div id="download-btn-container" style="display: none; margin-bottom: 40px;">
+      <button class="btn-download" id="pdf-btn" onclick="downloadPDF()">📥 Download PDF</button>
     </div>
   </div>
 
@@ -147,6 +131,66 @@
       document.getElementById('invoice-box').style.display = 'block';
       document.getElementById('download-btn-container').style.display = 'block';
       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // यह है नया और 100% काम करने वाला प्रोफेशनल तरीका
+    async function downloadPDF() {
+      const btn = document.getElementById('pdf-btn');
+      const clientName = document.getElementById('res-client').innerText || 'Client';
+      btn.innerText = "Generating PDF... ⏳";
+      btn.disabled = true;
+
+      try {
+        const element = document.getElementById('invoice-box');
+        
+        // 1. असली डिज़ाइन की एक कॉपी बनाएँ ताकि मोबाइल पर कुछ कटे नहीं
+        const clone = element.cloneNode(true);
+        clone.style.display = 'block';
+        
+        // 2. एक छुपा हुआ डिब्बा बनाएँ जो डेस्कटॉप (800px) जितना चौड़ा हो
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'absolute';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '0';
+        tempDiv.style.width = '800px'; 
+        tempDiv.style.backgroundColor = '#ffffff';
+        tempDiv.style.padding = '40px';
+        tempDiv.style.boxSizing = 'border-box';
+        tempDiv.appendChild(clone);
+        document.body.appendChild(tempDiv);
+
+        // 3. उस डिब्बे का फोटो (Canvas) खींचें
+        const canvas = await html2canvas(tempDiv, {
+          scale: 2, // हाई क्वालिटी
+          useCORS: true,
+          logging: false
+        });
+
+        // 4. उस फोटो को PDF में डालें
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF('p', 'mm', 'a4');
+        const pdfWidth = pdf.internal.pageSize.getWidth();
+        const pdfHeight = pdf.internal.pageSize.getHeight();
+        
+        const imgData = canvas.toDataURL('image/jpeg', 1.0);
+        
+        // फोटो की ऊंचाई कैलकुलेट करें ताकि वह A4 पेज में फिट हो जाए
+        const imgHeight = (canvas.height * pdfWidth) / canvas.width;
+
+        pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, imgHeight);
+        pdf.save(`Invoice_${clientName}.pdf`);
+
+        // 5. सफाई करें (छुपे हुए डिब्बे को हटा दें)
+        document.body.removeChild(tempDiv);
+        btn.innerText = "📥 Download PDF";
+        btn.disabled = false;
+
+      } catch (error) {
+        console.error(error);
+        alert("PDF download nahi ho payi. Kripya internet check karein.");
+        btn.innerText = "📥 Download PDF";
+        btn.disabled = false;
+      }
     }
   </script>
 </body>
